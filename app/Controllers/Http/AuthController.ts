@@ -2,6 +2,10 @@ import type { HttpContextContract } from "@ioc:Adonis/Core/HttpContext";
 import { schema, rules } from "@ioc:Adonis/Core/Validator";
 import User from "App/Models/User";
 import Role from "App/Models/Role";
+import Mail from "@ioc:Adonis/Addons/Mail";
+import Route from "@ioc:Adonis/Core/Route";
+import Hash from "@ioc:Adonis/Core/Hash";
+
 
 export default class AuthController {
   public async register({ request, response }: HttpContextContract) {
@@ -55,4 +59,47 @@ export default class AuthController {
     return { message: "logged out successfully" };
   }
 
+
+  public async checkAndSendMail({ request }: HttpContextContract) {
+    const email = request.input("email");
+    const isUserExist = await User.query().where("email", email);
+    if (isUserExist.length > 0) {
+      const customUrl =
+        "http://localhost:4200" +
+        Route.makeSignedUrl("confirm-password-change");
+
+      await Mail.use("smtp").send((message) => {
+        message
+          .from("admin@admin.com")
+          .to("sarahabdeldaym@gmail.com")
+          .subject("Verify your password")
+          .htmlView("emails/resetPassword", {
+            data: isUserExist[0],
+            url: customUrl,
+          });
+      });
+      return {
+        message: "mail sent",
+        status: true,
+      };
+    } else {
+      return { message: "email doesn't exist" };
+    }
+  }
+
+  public async confirmPassword({ request }: HttpContextContract) {
+    const email = request.input("email");
+    const newPassword: string = request.input("password");
+    const HashedNewPassword = await Hash.make(newPassword);
+
+    const user = await User.findBy("email", email);
+    if (!user) {
+      return { message: "Email is not Correct" };
+    } else {
+      await User.query()
+        .where("email", email)
+        .update({ password: HashedNewPassword });
+      return { message: "password has been modified" };
+    }
+  }
 }
