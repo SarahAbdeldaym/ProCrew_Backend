@@ -50,4 +50,9 @@ export default class AuthController {
   }
 
 
+  public async logout({ auth }: HttpContextContract) {
+    await auth.logout();
+    return { message: "logged out successfully" };
+  }
+
 }
