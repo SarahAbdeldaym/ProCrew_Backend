@@ -32,3 +32,9 @@ Route.group(()=>{
   Route.get('/github-sign-in', 'AuthController.redirect')
   Route.get('/github-sign-in-callback', 'AuthController.handleCallback');
 })
+
+
+Route.group(()=>{
+  Route.resource('/users', 'UsersController').apiOnly();
+}).middleware(['auth','isAdmin'])
+
