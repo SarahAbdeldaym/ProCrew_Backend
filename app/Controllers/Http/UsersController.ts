@@ -19,6 +19,30 @@ export default class UsersController {
     }
   }
 
+
+
+  public async store({ request, response }: HttpContextContract) {
+    const newUserSchema = schema.create({
+      name: schema.string({ trim: true }),
+      email: schema.string({ trim: true }),
+      password: schema.string({ trim: true }),
+    });
+    const payload = await request.validate({ schema: newUserSchema });
+
+    const user = await User.findBy("email", payload.email);
+    if (user) {
+      return {
+        error: "Email is already registered, please try a different email",
+      };
+    } else {
+      const addUser = User.create(payload);
+      response.status(200);
+	  return {
+        message: "user created successfully",
+      };
+    }
+  }
+
   public async show ({ params, response }: HttpContextContract) {
     const db_user = await User.find(params.id)
     if (db_user) {
