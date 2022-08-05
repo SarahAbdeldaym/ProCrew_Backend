@@ -59,5 +59,26 @@ export default class UsersController {
       }
     }
   }
+  public async destroy ({ params, response }: HttpContextContract) {
+    const user = await User.find(params.id)
 
+    if (user?.role_id == 2) {
+      return {
+        message: 'admin cannot be deleted'
+      }
+    } else {
+      if (user) {
+        response.status(200)
+        await user.delete()
+        return {
+          success: 'User deleted successfully'
+        }
+      } else {
+        response.status(404)
+        return {
+          failed: 'User not found'
+        }
+      }
+    }
+  }
 }
