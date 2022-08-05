@@ -102,4 +102,58 @@ export default class AuthController {
       return { message: "password has been modified" };
     }
   }
+
+
+  public async redirect({ ally }: HttpContextContract) {
+    return ally.use("github").redirect();
+  }
+
+  public async handleCallback({ ally, auth, response }: HttpContextContract) {
+    const githubUser = ally.use("github");
+
+    /**
+     * User has explicitly denied the login request
+     */
+    if (githubUser.accessDenied()) {
+      return "Access was denied";
+    }
+
+    /**
+     * Unable to verify the CSRF state
+     */
+    if (githubUser.stateMisMatch()) {
+      return "Request expired. try again";
+    }
+
+    /**
+     * There was an unknown error during the redirect
+     */
+    if (githubUser.hasError()) {
+      return githubUser.getError();
+    }
+
+    /**
+     * Finally, access the user
+     */
+    const user = await githubUser.user();
+
+    const findUser = {
+      email: user.email as string,
+    };
+
+    const userDetails = {
+      name: user.name as string,
+      email: user.email as string,
+      avatar_url: user.avatarUrl as string,
+      provider_id: user.id as string,
+      provider: "github",
+    };
+
+    const newUser = await User.firstOrCreate(findUser, userDetails);
+
+    await auth.use("api").login(newUser);
+    response.status(200);
+
+    return newUser;
+  }
 }

@@ -26,5 +26,9 @@ Route.group(()=>{
   Route.post('/logout','AuthController.logout');
   Route.post('/check-email','AuthController.checkAndSendMail')
   Route.post('/confirm-password-change','AuthController.confirmPassword').as('confirm-password-change');
+})
 
+Route.group(()=>{
+  Route.get('/github-sign-in', 'AuthController.redirect')
+  Route.get('/github-sign-in-callback', 'AuthController.handleCallback');
 })
