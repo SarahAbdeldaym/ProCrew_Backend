@@ -1,5 +1,6 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import User from 'App/Models/User'
+import { schema } from '@ioc:Adonis/Core/Validator'
 
 
 export default class UsersController {
@@ -29,6 +30,32 @@ export default class UsersController {
       response.status(404)
       return {
         message: 'user not found'
+      }
+    }
+  }
+
+
+  public async update ({ params, request, response }: HttpContextContract) {
+    const newUserSchema = schema.create({
+      name: schema.string({ trim: true }),
+      email: schema.string({ trim: true })
+    })
+    const payload = await request.validate({ schema: newUserSchema })
+    const user = await User.find(params.id)
+    if (user) {
+      response.status(200)
+      user.name = payload.name || user.name
+      user.email = payload.email || user.email
+
+      const createdUser = await user.save()
+      return {
+        message: 'User updated successfully',
+        data: createdUser
+      }
+    } else {
+      response.status(404)
+      return {
+        message: 'User not found'
       }
     }
   }
