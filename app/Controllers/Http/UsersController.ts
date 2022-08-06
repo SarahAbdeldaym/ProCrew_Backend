@@ -31,6 +31,7 @@ export default class UsersController {
 
     const user = await User.findBy("email", payload.email);
     if (user) {
+		response.status(409);
       return {
         error: "Email is already registered, please try a different email",
       };
