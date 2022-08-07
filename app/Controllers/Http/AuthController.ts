@@ -26,30 +26,28 @@ export default class AuthController {
     return response.created({message : "user created successfully"});
   }
 
-  public async login({ request, response, auth }: HttpContextContract) {
-    const email = request.input("email");
-    const password = request.input("password");
+  public async login({request, response, auth}: HttpContextContract) {
+    const email = request.input('email');
+    const password = request.input('password');
     try {
-      const token = await auth
-        .use("api")
-        .attempt(email, password, { expiresIn: "7days" });
-      await User.query()
-        .where("email", email)
-        .update({ remember_me_token: token.toJSON().token });
-
-      const user = await User.query().where("email", email);
-
-      const role = await Role.query().where("id", user[0].role_id);
-
+      const token = await auth.use('api').attempt(email, password, {expiresIn: '7days'});
+      await User
+        .query()
+        .where('email', email)
+        .update({remember_me_token: token.toJSON().token})
+      const user = await User
+        .query()
+        .where('email', email)
+      const role = await Role
+        .query()
+        .where('id', user[0].role_id)
       return {
-        id: user[0].id,
-        name: user[0].name,
-        email: user[0].email,
+        username: user[0].name,
         role: role[0].name,
-        token: token.toJSON().token,
-      };
+        token: token.toJSON().token
+      }
     } catch {
-      return response.unauthorized("Invalid credentials");
+      return response.unauthorized('Invalid credentials');
     }
   }
 
@@ -98,6 +96,7 @@ export default class AuthController {
     const HashedNewPasswordConfirmation = await Hash.make(
       newPasswordConfirmation
     );
+    
     await User.query()
       .where("email", email)
       .update({ password: HashedNewPassword });
