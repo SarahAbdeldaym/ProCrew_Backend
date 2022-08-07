@@ -65,7 +65,7 @@ export default class AuthController {
     const isUserExist = await User.query().where("email", email);
     if (isUserExist.length > 0) {
       const customUrl =
-        "http://localhost:4200" +
+        "http://localhost:3000" +
         Route.makeSignedUrl("confirm-password-change");
 
       await Mail.use("smtp").send((message) => {
@@ -87,6 +87,25 @@ export default class AuthController {
     }
   }
 
+
+  //inside
+  public async changePassword({ request }) {
+    const email = request.input("email");
+    const oldPassword = request.input("old_password");
+    const newPassword = request.input("new_password");
+    const HashedNewPassword = await Hash.make(newPassword);
+    const newPasswordConfirmation = request.input("new_password_confirmation");
+    const HashedNewPasswordConfirmation = await Hash.make(
+      newPasswordConfirmation
+    );
+    await User.query()
+      .where("email", email)
+      .update({ password: HashedNewPassword });
+    return { message: "password has been updated successfully" };
+  }
+
+
+//outside
   public async confirmPassword({ request }: HttpContextContract) {
     const email = request.input("email");
     const newPassword: string = request.input("password");
@@ -102,7 +121,6 @@ export default class AuthController {
       return { message: "password has been modified" };
     }
   }
-
 
   public async redirect({ ally }: HttpContextContract) {
     return ally.use("github").redirect();

@@ -38,3 +38,6 @@ Route.group(()=>{
   Route.resource('/users', 'UsersController').apiOnly();
 }).middleware(['auth','isAdmin'])
 
+Route.group(()=>{
+Route.post('/confirm-password-change-profile','AuthController.changePassword').as('confirm-password-change-profile');
+}).middleware(['auth'])
